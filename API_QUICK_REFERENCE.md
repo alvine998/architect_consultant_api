@@ -2,7 +2,7 @@
 
 ## Docker
 
-Build and start the API with MySQL:
+Build and start the API container:
 
 ```bash
 docker compose up --build
@@ -22,10 +22,19 @@ docker compose down
 
 The compose setup maps:
 - API: `http://localhost:4000`
-- MySQL: `localhost:3306`
 - Uploads: `./uploads`
 
-Inside Docker, the API connects to MySQL using `DB_HOST=db`.
+The database is expected to run outside Docker. Set these values in `.env` to your Linux MySQL host:
+
+```env
+DB_HOST=your-linux-db-host-or-ip
+DB_PORT=3306
+DB_NAME=architect_db
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+```
+
+If MySQL is running on the same Linux host as Docker, use the host IP address that containers can reach, not `localhost`.
 
 ## Endpoints Summary
 

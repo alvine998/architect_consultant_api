@@ -55,26 +55,6 @@ const getOne = async (req, res) => {
   }
 };
 
-const create = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashedPassword });
-    const { password: _, ...data } = user.toJSON();
-    res.status(201).json(data);
-  } catch (err) {
-    if (err.name === "SequelizeUniqueConstraintError") {
-      return res.status(409).json({ message: "Email already in use" });
-    }
-    if (err.name === "SequelizeValidationError") {
-      return res
-        .status(400)
-        .json({ message: err.errors.map((e) => e.message) });
-    }
-    res.status(500).json({ message: err.message });
-  }
-};
-
 const update = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
@@ -226,4 +206,4 @@ const importUsers = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getOne, create, update, remove, exportUsers, importUsers };
+module.exports = { getAll, getOne, update, remove, exportUsers, importUsers };

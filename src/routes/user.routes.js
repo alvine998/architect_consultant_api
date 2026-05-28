@@ -2,7 +2,7 @@ const { Router } = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { getAll, getOne, create, update, remove, exportUsers, importUsers } = require('../controllers/user.controller');
+const { getAll, getOne, update, remove, exportUsers, importUsers } = require('../controllers/user.controller');
 const { generateSampleTemplate } = require('../utils/generate-template');
 const authMiddleware = require('../utils/auth.middleware');
 
@@ -38,7 +38,6 @@ const upload = multer({
 
 router.get('/', authMiddleware, getAll);
 router.get('/:id', authMiddleware, getOne);
-router.post('/', authMiddleware, create);
 router.put('/:id', authMiddleware, update);
 router.delete('/:id', authMiddleware, remove);
 

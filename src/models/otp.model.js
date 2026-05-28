@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-const Otp = sequelize.define('Otp', {
+const Otp = sequelize.define('otp', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,

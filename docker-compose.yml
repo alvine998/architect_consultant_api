@@ -1,0 +1,45 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: architect_consultant_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-architect_db}
+      DB_USER: ${DB_USER:-architect_user}
+      DB_PASSWORD: ${DB_PASSWORD:-architect_password}
+    ports:
+      - "${PORT:-4000}:4000"
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    container_name: architect_consultant_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-architect_db}
+      MYSQL_USER: ${DB_USER:-architect_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-architect_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql_data:

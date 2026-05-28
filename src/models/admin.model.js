@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db");
 
-const User = sequelize.define('user', {
+const Admin = sequelize.define("admin", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -19,14 +19,14 @@ const User = sequelize.define('user', {
       isEmail: true,
     },
   },
-  phone: {
+  password: {
     type: DataTypes.STRING,
-    allowNull: true,
+    allowNull: false,
   },
-  chat_limit: {
+  login_attempts: {
     type: DataTypes.INTEGER,
-    defaultValue: 10,
-  }
+    defaultValue: 0,
+  },
 });
 
-module.exports = User;
+module.exports = Admin;

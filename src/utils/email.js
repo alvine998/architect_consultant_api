@@ -1,5 +1,12 @@
 const nodemailer = require('nodemailer');
 
+const getFromAddress = () => {
+  const fromEmail = process.env.MAIL_FROM || process.env.MAIL_USER;
+  const fromName = process.env.MAIL_FROM_NAME || 'noreply';
+
+  return `"${fromName}" <${fromEmail}>`;
+};
+
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
   port: process.env.MAIL_PORT,
@@ -13,7 +20,7 @@ const transporter = nodemailer.createTransport({
 const sendOtpEmail = async (email, code) => {
   try {
     const mailOptions = {
-      from: process.env.MAIL_FROM || process.env.MAIL_USER,
+      from: getFromAddress(),
       to: email,
       subject: 'Your OTP Code',
       html: `

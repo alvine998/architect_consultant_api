@@ -1,5 +1,32 @@
 # Excel Import/Export API Quick Reference
 
+## Docker
+
+Build and start the API with MySQL:
+
+```bash
+docker compose up --build
+```
+
+Run in the background:
+
+```bash
+docker compose up -d --build
+```
+
+Stop services:
+
+```bash
+docker compose down
+```
+
+The compose setup maps:
+- API: `http://localhost:4000`
+- MySQL: `localhost:3306`
+- Uploads: `./uploads`
+
+Inside Docker, the API connects to MySQL using `DB_HOST=db`.
+
 ## Endpoints Summary
 
 ### 1. Export Users to Excel
@@ -130,6 +157,25 @@ curl -X POST http://localhost:3000/api/auth/login \
   -d '{"email":"user@example.com","password":"password"}'
 ```
 
+### Admin Login
+```bash
+curl -X POST http://localhost:3000/api/admins/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"password"}'
+```
+
+### Create Admin
+```bash
+curl -X POST http://localhost:3000/api/admins/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Admin User",
+    "email": "admin@example.com",
+    "password": "password",
+    "confirmPassword": "password"
+  }'
+```
+
 ### 2. Export Users
 ```bash
 TOKEN="your_token_here"
@@ -152,6 +198,127 @@ TOKEN="your_token_here"
 curl -X GET http://localhost:3000/api/users/import/template \
   -H "Authorization: Bearer $TOKEN" \
   -o template.xlsx
+```
+
+### 5. Chat with AI
+```bash
+TOKEN="your_token_here"
+curl -X POST http://localhost:3000/api/ai/chat \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Give me three modern minimalist house concepts",
+    "max_output_tokens": 800
+  }'
+```
+
+For chat history, send `messages` instead of `message`:
+```json
+{
+  "messages": [
+    { "role": "user", "content": "Suggest a villa concept" },
+    { "role": "assistant", "content": "A tropical modern villa..." },
+    { "role": "user", "content": "Make it cheaper to build" }
+  ]
+}
+```
+
+AI usage quota:
+- Each authenticated user gets 10 AI requests per day per IP address by default
+- Image generation is optional and limited to 1 request per day per IP address
+- Image generation counts as 1 of the 10 total daily AI requests
+- The daily limit uses the user's `chat_limit` value
+
+### 6. Generate Image with AI
+```bash
+TOKEN="your_token_here"
+curl -X POST http://localhost:3000/api/ai/images \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Modern tropical house exterior, warm lighting, realistic render",
+    "size": "1280x1280"
+  }'
+```
+
+Required environment variables:
+```env
+BIGMODEL_API_KEY=your_bigmodel_api_key_here
+BIGMODEL_BASE_URL=https://open.bigmodel.cn/api/paas/v4
+BIGMODEL_CHAT_MODEL=glm-5.1
+BIGMODEL_IMAGE_MODEL=glm-image
+BIGMODEL_MAX_OUTPUT_TOKENS=1024
+BIGMODEL_TOPIC_CLASSIFIER_MODEL=glm-5.1
+AI_ALLOWED_TOPICS=architecture,architectural consultation,building design,interior design,construction,renovation,materials,space planning,landscape design,cost estimation,permits,property development
+```
+
+### 7. Request OTP and Find/Create User
+```bash
+curl -X POST http://localhost:3000/api/auth/send-otp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "08123456789"
+  }'
+```
+
+This endpoint now:
+- Finds an existing user by email or creates one
+- Sends an OTP to the email
+- Stores a `user_attempt` row with `success: true` or `success: false`
+- Requires waiting 60 seconds before requesting another OTP for the same email
+
+Cooldown response:
+```json
+{
+  "message": "Please wait 42 seconds before requesting another OTP",
+  "retryAfter": 42
+}
+```
+
+Verify OTP and get user token:
+```bash
+curl -X POST http://localhost:3000/api/auth/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "code": "123456"
+  }'
+```
+
+Verify OTP success response:
+```json
+{
+  "message": "OTP verified successfully",
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "08123456789",
+    "chat_limit": 10
+  },
+  "token": "JWT_TOKEN"
+}
+```
+
+### 8. User Attempts
+```bash
+TOKEN="your_token_here"
+curl -X GET "http://localhost:3000/api/user-attempts?page=1&limit=10&success=true" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Create a manual attempt record:
+```bash
+TOKEN="your_token_here"
+curl -X POST http://localhost:3000/api/user-attempts \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "success": false
+  }'
 ```
 
 ---
